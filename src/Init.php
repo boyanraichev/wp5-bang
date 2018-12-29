@@ -34,28 +34,16 @@ class Init {
 		add_action( 'init', [ $this, 'themeInit' ] );
 		
 		// change templates folder
-		add_filter( 'index_template_hierarchy', [$this,'templatesFolder'] );
-		add_filter( '404_template_hierarchy', [$this,'templatesFolder'] );
-		add_filter( 'archive_template_hierarchy', [$this,'templatesFolder'] );
-		add_filter( 'author_template_hierarchy', [$this,'templatesFolder'] );
-		add_filter( 'category_template_hierarchy', [$this,'templatesFolder'] );
-		add_filter( 'tag_template_hierarchy', [$this,'templatesFolder'] );
-		add_filter( 'date_template_hierarchy', [$this,'templatesFolder'] );
-		add_filter( 'embed_template_hierarchy', [$this,'templatesFolder'] );
-		add_filter( 'home_template_hierarchy', [$this,'templatesFolder'] );
-		add_filter( 'frontpage_template_hierarchy', [$this,'templatesFolder'] );
-		add_filter( 'page_template_hierarchy', [$this,'templatesFolder'] );
-		add_filter( 'paged_template_hierarchy', [$this,'templatesFolder'] );
-		add_filter( 'search_template_hierarchy', [$this,'templatesFolder'] );
-		add_filter( 'single_template_hierarchy', [$this,'templatesFolder'] );
-		add_filter( 'singular_template_hierarchy', [$this,'templatesFolder'] );
-		add_filter( 'attachment_template_hierarchy', [$this,'templatesFolder'] );
+		$types = ['index', '404', 'archive', 'author', 'category', 'tag', 'taxonomy', 'date', 'embed', 'home', 'frontpage', 'page', 'paged', 'search', 'single', 'singular', 'attachment'];
+		foreach($types as $type) {
+			add_filter( $type.'_template_hierarchy', [$this,'templatesFolder'] );
+		}
 		
 		// remove unneeded things in <head>
-		// add_action('init', [$this,'removeHeadLinks'] ); 
+		add_action('init', [$this,'removeHeadLinks'] ); 
 		
 		// remove admin bar logo
-		// add_action('wp_before_admin_bar_render', [$this,'removeBarLogo'], 0);
+		add_action('wp_before_admin_bar_render', [$this,'removeBarLogo'], 0);
 
 		if (is_admin()) {
 			$admin = AdminInit::instance();
@@ -84,11 +72,9 @@ class Init {
     
     public function templatesFolder( $templates ){
 
-	    if(is_array($templates)) {
-		    foreach($templates as $key => $template) {
-			    $templates[$key] = 'views/'.$template;
-		    }
-	    }           
+	    foreach( (array) $templates as $key => $template) {
+		    $templates[$key] = 'resources/views/'.$template;
+	    }
 		
 		return $templates;
 		

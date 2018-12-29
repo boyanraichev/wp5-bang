@@ -18,7 +18,7 @@ class Init {
     
     public function __construct() {
 	    
-		//add_action('wp_dashboard_setup', [$this,'removeDashboardWidgets'] );
+		add_action('wp_dashboard_setup', [$this,'removeDashboardWidgets'] );
 		
 		add_filter('admin_footer_text', [$this,'footerText']);
 		
@@ -26,17 +26,16 @@ class Init {
 	
 	// remove dashboard widgets
 	public function removeDashboardWidgets() {
+
 		remove_meta_box( 'dashboard_quick_press', 'dashboard', 'side' );
-		remove_meta_box( 'dashboard_recent_drafts', 'dashboard', 'side' );
 		remove_meta_box( 'dashboard_primary', 'dashboard', 'side' );
-		remove_meta_box( 'dashboard_secondary', 'dashboard', 'side' );
-		remove_meta_box( 'dashboard_plugins', 'dashboard', 'normal' );
+		
 	} 
 
 	// remove footer wordpress link - in admin
 	public function footerText() {
     	
-    	echo '<p>'.config('theme.description').'</p>';
+    	return config('theme.description');
     	
 	}
 

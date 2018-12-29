@@ -3,7 +3,7 @@
     "description": "A theme development framework for WordPress 5.",
     "type": "library",
     "homepage": "https://github.com/boyanraichev/wp5-bang",
-    "license": "GPL",
+    "license": "MIT",
     "authors": [
         {
             "name": "Boyan Raichev",

@@ -26,3 +26,15 @@ if (! function_exists('config')) {
 	}
 	
 }
+
+if (! function_exists('template')) {
+	
+	function template(string $name) {
+		
+		$template = [ 'resources/views/'.$name.'.php' ];
+		
+		locate_template($template, true, false);
+		
+	}
+	
+}
