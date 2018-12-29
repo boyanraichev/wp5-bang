@@ -15,7 +15,7 @@
     },
     "autoload": {
 	    "files": [
-            "src/Helpers.php",
+            "src/Helpers.php"
         ],
 		"psr-4": {
 			"Boyo\\WPBang\\": "src/"
