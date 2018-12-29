@@ -33,6 +33,24 @@ class Init {
     	add_action( 'after_setup_theme', [ $this, 'themeSetup' ] ); 
 		add_action( 'init', [ $this, 'themeInit' ] );
 		
+		// change templates folder
+		add_filter( 'index_template_hierarchy', [$this,'templatesFolder'] );
+		add_filter( '404_template_hierarchy', [$this,'templatesFolder'] );
+		add_filter( 'archive_template_hierarchy', [$this,'templatesFolder'] );
+		add_filter( 'author_template_hierarchy', [$this,'templatesFolder'] );
+		add_filter( 'category_template_hierarchy', [$this,'templatesFolder'] );
+		add_filter( 'tag_template_hierarchy', [$this,'templatesFolder'] );
+		add_filter( 'date_template_hierarchy', [$this,'templatesFolder'] );
+		add_filter( 'embed_template_hierarchy', [$this,'templatesFolder'] );
+		add_filter( 'home_template_hierarchy', [$this,'templatesFolder'] );
+		add_filter( 'frontpage_template_hierarchy', [$this,'templatesFolder'] );
+		add_filter( 'page_template_hierarchy', [$this,'templatesFolder'] );
+		add_filter( 'paged_template_hierarchy', [$this,'templatesFolder'] );
+		add_filter( 'search_template_hierarchy', [$this,'templatesFolder'] );
+		add_filter( 'single_template_hierarchy', [$this,'templatesFolder'] );
+		add_filter( 'singular_template_hierarchy', [$this,'templatesFolder'] );
+		add_filter( 'attachment_template_hierarchy', [$this,'templatesFolder'] );
+		
 		// remove unneeded things in <head>
 		// add_action('init', [$this,'removeHeadLinks'] ); 
 		
@@ -63,6 +81,18 @@ class Init {
     	add_post_type_support( 'page', 'excerpt' );
 
     }
+    
+    public function templatesFolder( $templates ){
+
+	    if(is_array($templates)) {
+		    foreach($templates as $key => $template) {
+			    $templates[$key] = 'views/'.$template;
+		    }
+	    }           
+		
+		return $templates;
+		
+	}
     
     // Clean up the <head>
 	public function removeHeadLinks() {
