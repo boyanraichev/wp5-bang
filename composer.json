@@ -1,0 +1,24 @@
+{
+    "name": "boyo/wp5-bang",
+    "description": "A theme development framework for WordPress 5.",
+    "type": "library",
+    "homepage": "https://github.com/boyanraichev/wp5-bang",
+    "license": "GPL",
+    "authors": [
+        {
+            "name": "Boyan Raichev",
+            "email": "myself@boyanr.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.1.0"
+    },
+    "autoload": {
+	    "files": [
+            "src/Helpers.php",
+        ],
+		"psr-4": {
+			"Boyo\\WPBang\\": "src/"
+    	}
+	}
+}
