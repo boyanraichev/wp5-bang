@@ -31,9 +31,19 @@ if (! function_exists('template')) {
 	
 	function template(string $name) {
 		
-		$template = [ 'resources/views/'.$name.'.php' ];
+		$template = [ $name.'.php' ];
 		
 		locate_template($template, true, false);
+		
+	}
+	
+}
+
+if (! function_exists('asset')) {
+	
+	function asset(string $name) {
+		
+		return get_stylesheet_directory_uri() . '/assets';
 		
 	}
 	

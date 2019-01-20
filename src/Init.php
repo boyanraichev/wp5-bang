@@ -20,14 +20,9 @@ class Init {
     
     public function __construct() {
 	    
-		if (!defined('THEME_DIR')) {
-			define('THEME_DIR',dirname(__DIR__,3));
+		if (!defined('PROJECT_DIR')) {
+			define('PROJECT_DIR',dirname(__DIR__,3));
 		}    
-		
-		if (!defined('THEME_VERSION')) {
-			$ver = config('theme.version');
-			define('THEME_VERSION',$ver);
-		}
 		
 		// setup theme
     	add_action( 'after_setup_theme', [ $this, 'themeSetup' ] ); 
@@ -36,7 +31,7 @@ class Init {
 		// change templates folder
 		$types = ['index', '404', 'archive', 'author', 'category', 'tag', 'taxonomy', 'date', 'embed', 'home', 'frontpage', 'page', 'paged', 'search', 'single', 'singular', 'attachment'];
 		foreach($types as $type) {
-			add_filter( $type.'_template_hierarchy', [$this,'templatesFolder'] );
+			// add_filter( $type.'_template_hierarchy', [$this,'templatesFolder'] );
 		}
 		
 		// remove unneeded things in <head>

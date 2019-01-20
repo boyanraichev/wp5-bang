@@ -28,9 +28,9 @@ class Config {
 		    
 		    if (!isset($this->config[$keySplit[0]])) {
 			    
-			    if (file_exists( THEME_DIR . '/config/' . $keySplit[0] . '.php')) {
+			    if (file_exists( PROJECT_DIR . '/config/' . $keySplit[0] . '.php')) {
 				    
-				    $this->config[$keySplit[0]] = require_once THEME_DIR . '/config/' . $keySplit[0] . '.php';
+				    $this->config[$keySplit[0]] = require_once PROJECT_DIR . '/config/' . $keySplit[0] . '.php';
 			    }
 		    }
 		    
