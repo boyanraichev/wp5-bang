@@ -16,6 +16,14 @@ class Config {
         return self::$_instance;
     }	
 
+	public function __construct() {
+	    
+		if (!defined('PROJECT_DIR')) {
+			define('PROJECT_DIR',dirname(__DIR__,4));
+		} 
+		
+	}
+	
 	// holds the loaded config files
     private $config = [];
     

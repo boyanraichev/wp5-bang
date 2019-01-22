@@ -21,7 +21,7 @@ class Init {
     public function __construct() {
 	    
 		if (!defined('PROJECT_DIR')) {
-			define('PROJECT_DIR',dirname(__DIR__,3));
+			define('PROJECT_DIR',dirname(__DIR__,4));
 		}    
 		
 		// setup theme
