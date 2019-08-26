@@ -1,12 +1,14 @@
 <?php 
 namespace Boyo\WPBang\Admin;
+use \Boyo\WPBang\Admin\Lock;
 
 if (!defined('ABSPATH')) die;
 
 class Init {
 	
 	/** @var The single instance of the class */
-	private static $_instance = null;	
+	private static $_instance = null;
+
 	
 	// Don't load more than one instance of the class
 	public static function instance() {
@@ -22,6 +24,8 @@ class Init {
 		
 		add_filter('admin_footer_text', [$this,'footerText']);
 		
+// 		$lock = Lock::instance();
+
 	}
 	
 	// remove dashboard widgets
@@ -35,7 +39,7 @@ class Init {
 	// remove footer wordpress link - in admin
 	public function footerText() {
     	
-    	return config('theme.description');
+		return config('theme.description');
     	
 	}
 

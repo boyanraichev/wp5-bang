@@ -25,14 +25,8 @@ class Init {
 		}    
 		
 		// setup theme
-    	add_action( 'after_setup_theme', [ $this, 'themeSetup' ] ); 
+		add_action( 'after_setup_theme', [ $this, 'themeSetup' ] ); 
 		add_action( 'init', [ $this, 'themeInit' ] );
-		
-		// change templates folder
-		$types = ['index', '404', 'archive', 'author', 'category', 'tag', 'taxonomy', 'date', 'embed', 'home', 'frontpage', 'page', 'paged', 'search', 'single', 'singular', 'attachment'];
-		foreach($types as $type) {
-			// add_filter( $type.'_template_hierarchy', [$this,'templatesFolder'] );
-		}
 		
 		// remove unneeded things in <head>
 		add_action('init', [$this,'removeHeadLinks'] ); 
@@ -49,6 +43,10 @@ class Init {
 		// add browser classes
 		add_filter('body_class',[$this,'browserClass']);	
 
+		if (config('theme.seo')) {
+			$seo = Seo::instance();
+		}
+		
 		if (is_admin()) {
 			$admin = AdminInit::instance();
 		}
@@ -69,19 +67,9 @@ class Init {
 		$this->maintenanceMode();
 		
 		// excerpt for pages
-    	add_post_type_support( 'page', 'excerpt' );
+		add_post_type_support( 'page', 'excerpt' );
 
     }
-    
-    public function templatesFolder( $templates ){
-
-	    foreach( (array) $templates as $key => $template) {
-		    $templates[$key] = 'resources/views/'.$template;
-	    }
-		
-		return $templates;
-		
-	}
     
     /* 
 	*
