@@ -2,6 +2,7 @@
 namespace Boyo\WPBang;
 
 use Boyo\WPBang\Admin\Init as AdminInit;
+use Boyo\WPBang\Fields\Init as Fields;
 
 if (!defined('ABSPATH')) die;
 
@@ -11,18 +12,26 @@ class Init {
 	private static $_instance = null;	
 	
 	// Don't load more than one instance of the class
-	public static function instance() {
+	public static function instance() 
+	{
 		if ( null == self::$_instance ) {
             self::$_instance = new self();
         }
         return self::$_instance;
     }	
     
-    public function __construct() {
+    public function __construct() 
+	{
+		
+		define('WP5BANG_VERSION','1.0');
 	    
 		if (!defined('PROJECT_DIR')) {
 			define('PROJECT_DIR',dirname(__DIR__,4));
 		}    
+		
+		// make custom theme folder outside content work		
+		add_filter( 'theme_root_uri', function($theme_root) { return WP_HOME . 'themes'; } );
+		add_filter( 'theme_root', function($theme_root) { return PROJECT_DIR . '/web/' . 'themes'; } );
 		
 		// setup theme
 		add_action( 'after_setup_theme', [ $this, 'themeSetup' ] ); 
@@ -43,6 +52,10 @@ class Init {
 		// add browser classes
 		add_filter('body_class',[$this,'browserClass']);	
 
+		if (config('theme.custom_fields')) {
+			$fields = Fields::instance();
+		}
+		
 		if (config('theme.seo')) {
 			$seo = Seo::instance();
 		}
@@ -53,7 +66,8 @@ class Init {
 		
     }
     
-    public function themeSetup() {
+    public function themeSetup() 
+	{
 	    
 	    add_theme_support( 'post-thumbnails' );		
 		add_theme_support( 'title-tag' ); 	
@@ -61,7 +75,8 @@ class Init {
 	    
     }
     
-    public function themeInit() {
+    public function themeInit() 
+	{
 		
 		// check for maintenance mode
 		$this->maintenanceMode();
@@ -76,7 +91,8 @@ class Init {
 	*  Clean up the <head>
 	*
 	*/
-	public function removeHeadLinks() {
+	public function removeHeadLinks() 
+	{
 		
 		remove_action('wp_head', 'rsd_link');
 		remove_action('wp_head', 'wlwmanifest_link');
@@ -96,7 +112,8 @@ class Init {
 	* remove admin bar logo
 	*
 	*/
-	public function removeBarLogo() {
+	public function removeBarLogo() 
+	{
 		
 	    global $wp_admin_bar;
 	    $wp_admin_bar->remove_menu('wp-logo');
@@ -104,14 +121,14 @@ class Init {
 	}
 	
 	/* 
-	*
 	* MAINTENANCE MODE 
-	*
 	*/
-	public function maintenanceMode() {
+	public function maintenanceMode() 
+	{
 	  	if ( !current_user_can( 'administrator' ) ) {
-	  		$mode_config = config('maintenance_mode');
-	  		$mode_option = get_option('maintenance_mode');
+	  		$mode_config = config('theme.maintenance_mode');
+			$mode_text = config('theme.maintenance_mode_text');
+	  		$mode_option = get_option('wp5bang_maintenance');
 			if (!empty($mode_config) OR !empty($mode_option) ) {
 			    $protocol = "HTTP/1.0";
 				if ( "HTTP/1.1" == $_SERVER["SERVER_PROTOCOL"] )
@@ -132,8 +149,8 @@ class Init {
 				}
 				h1 {
 					max-width: 600px;
-					margin: 20px;
-					font-size: 70px;
+					margin: 20px auto;
+					font-size: 30px;
 					line-height: 60px;
 					font-weight: 700;
 					font-family: Hevetica,Arial,sans-serif;
@@ -142,11 +159,7 @@ class Init {
 				</style>
 				</head>
 				<body>
-					<h1><?php 
-					if (!empty($theme_options['503'])) {
-						echo esc_attr($theme_options['503']);
-					} else {
-					 _e( 'Site is being updated. Please return later.', 'tablank' ); } ?></h1>
+					<h1><?php if (!empty($mode_text)) { echo $mode_text; } else { _e( 'Site is being updated. Please come back in a few minutes.', 'wp5-bang' ); } ?></h1>
 				</body>
 				</html>
 				<?php
@@ -160,8 +173,9 @@ class Init {
 	* Login with Email
 	*
 	*/
-	public function emailLogin($username) {
-		if (config('email_login')) {
+	public function emailLogin(string $username) 
+	{
+		if (config('theme.email_login')) {
 			$user = get_user_by('email',$username);
 			if(!empty($user->user_login))
 				$username = $user->user_login;
@@ -174,9 +188,10 @@ class Init {
 	* Redirect wp-login.php
 	*
 	*/
-	public function redirectLogin() {		
+	public function redirectLogin() 
+	{		
 
-		if ( config('block_login') ) {
+		if ( config('theme.block_login') ) {
 			add_action( 'login_form_login', [$this,'redirectHome'] );
 			add_action( 'login_form_register', [$this,'redirectHome'] );
 			add_action( 'login_form_rp', [$this,'redirectHome'] );
@@ -191,7 +206,8 @@ class Init {
 	* Redirect to home page
 	*
 	*/
-	public function redirectHome() {
+	public function redirectHome() 
+	{
 		wp_redirect( home_url( '' ) );
 		exit(); 
 	}
@@ -202,7 +218,8 @@ class Init {
 	* Add browser classes
 	*
 	*/
-	public function browserClass($classes) {
+	public function browserClass(array $classes) : array
+	{
 		
 		global $is_safari; global $is_gecko; global $is_IE; global $is_chrome; global $is_opera; global $is_iphone;
 		

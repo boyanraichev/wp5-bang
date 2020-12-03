@@ -11,14 +11,16 @@ class Init {
 
 	
 	// Don't load more than one instance of the class
-	public static function instance() {
+	public static function instance() 
+	{
 		if ( null == self::$_instance ) {
             self::$_instance = new self();
         }
         return self::$_instance;
     }	
     
-    public function __construct() {
+    public function __construct() 
+	{
 	    
 		add_action('wp_dashboard_setup', [$this,'removeDashboardWidgets'] );
 		
@@ -29,7 +31,8 @@ class Init {
 	}
 	
 	// remove dashboard widgets
-	public function removeDashboardWidgets() {
+	public function removeDashboardWidgets() 
+	{
 
 		remove_meta_box( 'dashboard_quick_press', 'dashboard', 'side' );
 		remove_meta_box( 'dashboard_primary', 'dashboard', 'side' );
@@ -37,7 +40,8 @@ class Init {
 	} 
 
 	// remove footer wordpress link - in admin
-	public function footerText() {
+	public function footerText() 
+	{
     	
 		return config('theme.description');
     	

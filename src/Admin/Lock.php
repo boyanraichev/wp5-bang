@@ -12,14 +12,16 @@ class Lock {
 	private $plugins_lock = [];	
 	
 	// Don't load more than one instance of the class
-	public static function instance() {
+	public static function instance() 
+	{
 		if ( null == self::$_instance ) {
             self::$_instance = new self();
         }
         return self::$_instance;
     }	
     
-    public function __construct() {
+    public function __construct() 
+	{
 	    
 	    // add link to generate lock file
 	    add_action('pre_current_active_plugins', [$this,'readLock'], 10 , 1);
@@ -42,17 +44,20 @@ class Lock {
 		add_action( 'after_plugin_row', [$this,'addPluginAfter'], 10 , 3);
 	}
 	
-	public function addLink($plugins) {
+	public function addLink(array $plugins) 
+	{
 
 		echo '<div><a href="#">'.__('Generate lock file','wp5-bang').'</a></div>';
 		
 	}
 	
-	public function saveLock() {
+	public function saveLock() 
+	{
 		
 	}
 	
-	public function readLock($plugins) {
+	public function readLock(array $plugins) 
+	{
 		
 		$lockfile_path = PROJECT_DIR . '/plugins.lock';
 		if (file_exists($lockfile_path)) {
@@ -67,30 +72,35 @@ class Lock {
 	/*
 	 * Read the lock file and compare with the plugins array
 	 */
-	public function checkLock($plugins) {
+	public function checkLock(array $plugins) 
+	{
 		
 	}
 	
-	public function addColumn($columns) {
-		var_dump($columns);
+	public function addColumn(array $columns) : array
+	{
+		// var_dump($columns);
 		$columns['lock'] = __('Status');
 		return $columns;
 		
 	}
 
-	public function addColumnContent($column_name, $plugin_file, $plugin_data ) {
+	public function addColumnContent($column_name, $plugin_file, $plugin_data ) 
+	{
 		if ($column_name=='lock') {
 			echo '<span style="color:green;font-weight:bold;">ok</span>';
 		}
 	}
 
-	function addPluginRowMeta($plugin_meta, $plugin_file, $plugin_data, $status) {
+	function addPluginRowMeta($plugin_meta, $plugin_file, $plugin_data, $status) 
+	{
 		$plugin_meta[] = '<span style="color:red;font-weight:bold;">test</span>';
 		$plugin_meta[] = '<span style="color:green;font-weight:bold;">ok</span>';
 		return $plugin_meta;
 	}
 
-	function addPluginAfter($plugin_file, $plugin_data, $status) {
+	function addPluginAfter($plugin_file, $plugin_data, $status) 
+	{
 		echo '<tr class="plugin-update-tr"><td colspan="4" class="plugin-update colspanchange"><div class="update-message notice inline notice-warning notice-alt"><p>hujnq</p></div></td></tr>';
 		echo '<tr class="plugin-update-tr"><td colspan="4" class="plugin-update colspanchange"><div class="update-message notice inline notice-error notice-alt"><p>hujnq</p></div></td></tr>';
 		echo '<tr class="plugin-update-tr"><td colspan="4" class="plugin-update colspanchange"><div class="update-message notice inline notice-alt updated-message notice-success"><p>hujnq</p></div></td></tr>';

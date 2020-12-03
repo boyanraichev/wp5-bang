@@ -9,14 +9,16 @@ class Seo {
 	private static $_instance = null;	
 	
 	// Don't load more than one instance of the class
-	public static function instance() {
+	public static function instance() 
+	{
 		if ( null == self::$_instance ) {
             self::$_instance = new self();
         }
         return self::$_instance;
     }	
 
-	public function __construct() {
+	public function __construct() 
+	{
 		
 		$post_meta_fields = [
 			'all' => [ 
@@ -35,14 +37,14 @@ class Seo {
 							'type'		=> 'single',
 							'meta_name' => 'seo_description',
 							'meta_type' => 'textarea',
-							'label'		=> 'Custom meta description',
-							'placeholder'	=> 'Custom meta description',								
+							'label'		=> __('Custom meta description','wp5-bang'),
+							'placeholder'	=> __('Custom meta description','wp5-bang'),								
 						],				
 					],
 				],
 			],	
 		];
-		$post_meta = \Boyo\WPBangMeta\PostMeta::instance();
+		$post_meta = \Boyo\WPBang\Fields\PostMeta::instance();
 		$post_meta->setFields($post_meta_fields,19);
 		
 		add_action('admin_init', [$this,'adminOptions']); 
@@ -51,18 +53,19 @@ class Seo {
 		//add_filter( 'document_title_parts', [$this,'titleFilter'], 10, 1 );   		
 	}
 
-	public function adminOptions() {
+	public function adminOptions() 
+	{
 	
 	    add_settings_section(  
 	        'wp5bang_seo', // Section ID 
-	        'SEO Information', // Section Title
+	        __('SEO Information','wp5-bang'), // Section Title
 	        [$this,'sectionSettingCallback'], // Callback
 	        'general' // What Page?  This makes the section show up on the General Settings Page
 	    );
 	
 	    add_settings_field( // Option 1
 	        'site_ogimage', // Option ID
-	        'OG Image default', // Label
+	        __('OG Image default','wp5-bang'), // Label
 	        [$this,'textSettingCallback'], // !important - This is where the args go!
 	        'general', // Page it will be displayed (General Settings)
 	        'wp5bang_seo', // Name of our section
@@ -75,16 +78,19 @@ class Seo {
 	
 	}
 	
-	public function sectionSettingCallback() {
+	public function sectionSettingCallback() 
+	{
 		
 	}
 	
-	public function textSettingCallback($args) {
+	public function textSettingCallback(array $args) 
+	{
 		echo '<input type="text" id="'. $args[0] .'" name="'. $args[0] .'" value="'.stripslashes(esc_attr( get_option($args[0]) )).'" class="regular-text" />';	
 	}
 
 	
-	public function head() {
+	public function head() 
+	{
 		
 		// set up defaults		
 		$meta = [
@@ -139,7 +145,7 @@ class Seo {
 			$meta['ogtitle'] = single_term_title('', false);
 		// if archive 
 		} elseif ( is_archive() ) {
-			$meta['description'] = __('Archive','tablank').' - '.get_bloginfo('name'); 
+			$meta['description'] = __('Archive','wp5-bang').' - '.get_bloginfo('name'); 
 			$meta['noindex'] = true;
 		// if search
 		} elseif ( is_search() ) { 
@@ -187,14 +193,15 @@ class Seo {
 	}
 		
 
-	public function titleFilter( $title ) {
+	public function titleFilter( array $title ) : array
+	{
 		
 		if (is_search()) {
-	    	$title['title'] = __('Search for', 'tablank') . ' &quot;'.get_search_query().'&quot;'; 
+	    	$title['title'] = __('Search for', 'wp5-bang') . ' &quot;'.get_search_query().'&quot;'; 
 	    } 
 	    global $page, $paged;
 	  	if ( ( $paged >= 2 || $page >= 2 ) && ! is_404() ) {
-	  		$title['page'] = ' ('.__('page', 'tablank').' '. $page.')'; 
+	  		$title['page'] = ' ('.__('page', 'wp5-bang').' '. $page.')'; 
 		}
 		
 		return $title;

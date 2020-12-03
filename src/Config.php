@@ -9,14 +9,16 @@ class Config {
 	private static $_instance = null;	
 	
 	// Don't load more than one instance of the class
-	public static function instance() {
+	public static function instance() 
+	{
 		if ( null == self::$_instance ) {
             self::$_instance = new self();
         }
         return self::$_instance;
     }	
 
-	public function __construct() {
+	public function __construct() 
+	{
 	    
 		if (!defined('PROJECT_DIR')) {
 			define('PROJECT_DIR',dirname(__DIR__,4));
@@ -28,7 +30,8 @@ class Config {
     private $config = [];
     
     // loads and returns a config key
-    public function get($key) {
+    public function get(string $key) 
+	{
 	    
 	    $keySplit = explode('.', $key);
 	    

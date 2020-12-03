@@ -13,6 +13,9 @@
     "require": {
         "php": ">=7.1.0"
     },
+    "conflict": {
+        "boyo/wp5-bang-meta": "*"
+    },
     "autoload": {
 	    "files": [
             "src/Helpers.php"

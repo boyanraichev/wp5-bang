@@ -17,7 +17,7 @@ if (! function_exists('bang')) {
 
 if (! function_exists('config')) {
 	
-	function config($key) {
+	function config(string $key) {
 		
 		$config = Config::instance();
 		
