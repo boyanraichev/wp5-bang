@@ -30,7 +30,7 @@ class Init {
 		}    
 		
 		// make custom theme folder outside content work		
-		add_filter( 'theme_root_uri', function($theme_root) { return WP_HOME . 'themes'; } );
+		add_filter( 'theme_root_uri', function($theme_root) { return WP_HOME . '/themes'; } );
 		add_filter( 'theme_root', function($theme_root) { return PROJECT_DIR . '/web/' . 'themes'; } );
 		
 		// setup theme
