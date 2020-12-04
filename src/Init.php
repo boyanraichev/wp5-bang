@@ -87,9 +87,7 @@ class Init {
     }
     
     /* 
-	*
 	*  Clean up the <head>
-	*
 	*/
 	public function removeHeadLinks() 
 	{
@@ -169,24 +167,20 @@ class Init {
 	}
 	
 	/* 
-	*
 	* Login with Email
-	*
 	*/
-	public function emailLogin(string $username) 
+	public function emailLogin(&$username) 
 	{
 		if (config('theme.email_login')) {
 			$user = get_user_by('email',$username);
-			if(!empty($user->user_login))
+			if(!empty($user->user_login)) {
 				$username = $user->user_login;
-			return $username;
+			}
 		}
 	}
 	
 	/* 
-	*
 	* Redirect wp-login.php
-	*
 	*/
 	public function redirectLogin() 
 	{		
@@ -202,9 +196,7 @@ class Init {
 	
 	
 	/* 
-	*
 	* Redirect to home page
-	*
 	*/
 	public function redirectHome() 
 	{
@@ -214,9 +206,7 @@ class Init {
 		
 	
 	/* 
-	*
 	* Add browser classes
-	*
 	*/
 	public function browserClass(array $classes) : array
 	{
