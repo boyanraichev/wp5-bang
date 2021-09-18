@@ -26,7 +26,7 @@ class Init {
 		
 		add_filter('admin_footer_text', [$this,'footerText']);
 		
-// 		$lock = Lock::instance();
+		$lock = Lock::instance();
 
 	}
 	

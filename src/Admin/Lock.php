@@ -9,54 +9,120 @@ class Lock {
 	/** @var The single instance of the class */
 	private static $_instance = null;
 	
-	private $plugins_lock = [];	
+	private $plugins_lock = false;	
 	
 	// Don't load more than one instance of the class
 	public static function instance() 
 	{
 		if ( null == self::$_instance ) {
-            self::$_instance = new self();
-        }
-        return self::$_instance;
-    }	
-    
-    public function __construct() 
-	{
-	    
-	    // add link to generate lock file
-	    add_action('pre_current_active_plugins', [$this,'readLock'], 10 , 1);
-	    
-        // add link to generate lock file
-	    add_action('pre_current_active_plugins', [$this,'addLink'], 10 , 1);
-			    
-	    // add column to plugins table
-	    add_filter( 'manage_plugins_columns', [$this,'addColumn'], 10, 1 );
-    	add_action( 'manage_plugins_custom_column', [$this,'addColumnContent'], 10, 3);
-			
-		if ( is_multisite() ) {
-			add_filter( 'manage_plugins-network_columns', [$this,'addColumn'], 10, 1 );
-			add_action( 'manage_plugins-network_custom_column', [$this,'addColumnContent'], 10, 3);		
-		} else {
-			
+			self::$_instance = new self();
 		}
+		return self::$_instance;
+	}	
+	
+	// add hooks on plugins page
+	public function __construct() 
+	{
+		add_action('init', [$this,'init'], 10 , 1);
+	}
+	
+	public function init() 
+	{	
+		global $pagenow;
 		
-		add_filter( 'plugin_row_meta',[$this,'addPluginRowMeta'],10, 4 );
-		add_action( 'after_plugin_row', [$this,'addPluginAfter'], 10 , 3);
+		if ( $pagenow == 'plugins.php' && current_user_can('install_plugins') ) { 
+			
+			// read saved lock file if any
+			add_action('admin_init', [$this,'readLock'], 10 , 1);
+			
+			if (( ! is_multisite() || is_network_admin() )) {
+				
+				// add link to generate lock file
+				add_action('pre_current_active_plugins', [$this,'addLink'], 10 , 1);
+				
+				// save new lock file if needed 
+				add_action( 'admin_init', [$this,'saveLock'], 10, 1 );
+
+			}
+			
+			if (is_multisite() && is_network_admin()) {
+				
+				add_filter( 'manage_plugins-network_columns', [$this,'addColumn'], 10, 1 );
+				// add_action( 'manage_plugins_network_custom_column', [$this,'addColumnContent'], 10, 3);		
+				add_action( 'manage_plugins_custom_column', [$this,'addColumnContent'], 10, 3);	
+				
+			}
+			
+			if (!is_multisite()) {
+				
+				add_filter( 'manage_plugins_columns', [$this,'addColumn'], 10, 1 );
+				add_action( 'manage_plugins_custom_column', [$this,'addColumnContent'], 10, 3);	
+
+			}
+			
+			add_filter( 'plugin_row_meta',[$this,'addPluginRowMeta'],10, 4 );
+			add_action( 'after_plugin_row', [$this,'addPluginAfter'], 10 , 3);
+		
+		}
 	}
 	
 	public function addLink(array $plugins) 
 	{
-
-		echo '<div><a href="#">'.__('Generate lock file','wp5-bang').'</a></div>';
+		$url = is_multisite() ? network_admin_url('plugins.php?generate_lock=true') : admin_url('plugins.php?generate_lock=true');
+		echo '<div><a href="'.$url.'">'.__('Generate lock file','wp5-bang').'</a></div>';
 		
 	}
 	
-	public function saveLock() 
+	public function saveLock($all_plugins) 
 	{
 		
+		if (!empty($_GET['generate_lock'])) {
+			
+			$plugins = get_plugins();
+			
+			$lock = [
+				'about' => 'This is an automatically generated lock file of the currently installed WP plugins.',
+				'date' => (new \DateTime())->format('Y-m-d H:i'),
+				'timestamp' => time(),
+				'plugins' => [],
+			];
+			
+			foreach ($plugins as $key => $plugin) {
+				
+				$lock['plugins'][$key] = [
+					'name' => $plugin['Name'],
+					'version' => $plugin['Version'],
+					'network' => $plugin['Network'],	
+				];
+				
+			}
+			
+			$lockfile_path = PROJECT_DIR . '/plugins.lock';
+			file_put_contents($lockfile_path, json_encode($lock,JSON_PRETTY_PRINT));
+			
+			if ( is_multisite() ) {
+				
+				add_action( 'network_admin_notices', [$this,'lockSavedNotice'] );
+				
+			} else {
+				
+				add_action( 'admin_notices', [$this,'lockSavedNotice'] );
+				
+			}
+			
+			
+		}
 	}
 	
-	public function readLock(array $plugins) 
+	public function lockSavedNotice() {
+		?>
+		<div class="notice notice-success is-dismissible">
+			<p><?php _e( 'Lock file generated!', 'wp5-bang' ); ?></p>
+		</div>
+		<?php
+	}
+	
+	public function readLock() 
 	{
 		
 		$lockfile_path = PROJECT_DIR . '/plugins.lock';
@@ -65,8 +131,47 @@ class Lock {
 			$lockfile = file_get_contents($lockfile_path);
 			$this->plugins_lock = json_decode($lockfile);
 			
+			$plugins = get_plugins();
+			
+			$this->missing = [];
+			
+			foreach($this->plugins_lock->plugins as $slug => $plugin) {
+				
+				if (!isset($plugins[$slug])) {
+					$this->missing[] = $plugin;
+				}
+				
+			} 
+			
+			if (!empty($this->missing)) {
+				
+				if ( is_multisite() ) {
+					
+					add_action( 'network_admin_notices', [$this,'missingPluginsNotice'] );
+					
+				} else {
+					
+					add_action( 'admin_notices', [$this,'missingPluginsNotice'] );
+					
+				}
+				
+			}
+			
 		}
 		
+	}
+	
+	public function missingPluginsNotice() {
+		?>
+		<div class="notice notice-success is-dismissible">
+			<p><?php _e( 'The following plugins are missing on this installation:', 'wp5-bang' ); ?></p>
+			<?php 
+			foreach($this->missing as $missing) {
+				?><div><?php echo "{$missing->name} ({$missing->version})"; ?></div><?php
+			}
+			?>
+		</div>
+		<?php
 	}
 	
 	/*
@@ -79,40 +184,98 @@ class Lock {
 	
 	public function addColumn(array $columns) : array
 	{
-		// var_dump($columns);
-		$columns['lock'] = __('Status');
+		if ($this->plugins_lock) {
+			$columns['lock'] = __('Lock Status', 'wp5-bang');
+		}
 		return $columns;
 		
 	}
 
 	public function addColumnContent($column_name, $plugin_file, $plugin_data ) 
 	{
-		if ($column_name=='lock') {
-			echo '<span style="color:green;font-weight:bold;">ok</span>';
+		if ($this->plugins_lock && $column_name=='lock') {
+			
+			if ( isset($this->plugins_lock->plugins->{$plugin_file}) && $this->plugins_lock->plugins->{$plugin_file}->version == $plugin_data['Version']) {
+				
+				echo '<span class="dashicons dashicons-saved"></span>';
+				
+			} else {
+				
+				echo '<span class="dashicons dashicons-warning"></span>';
+				
+			}
+			
+			
 		}
 	}
 
 	function addPluginRowMeta($plugin_meta, $plugin_file, $plugin_data, $status) 
 	{
-		$plugin_meta[] = '<span style="color:red;font-weight:bold;">test</span>';
-		$plugin_meta[] = '<span style="color:green;font-weight:bold;">ok</span>';
+		if ($this->plugins_lock && isset($this->plugins_lock->plugins->{$plugin_file}) ) {
+			
+			$plugin_meta[] = '<span>'.__('Recommended version:','wp5-bang').' '. $this->plugins_lock->plugins->{$plugin_file}->version.'</span>';
+			
+		}
 		return $plugin_meta;
 	}
 
 	function addPluginAfter($plugin_file, $plugin_data, $status) 
 	{
-		echo '<tr class="plugin-update-tr"><td colspan="4" class="plugin-update colspanchange"><div class="update-message notice inline notice-warning notice-alt"><p>hujnq</p></div></td></tr>';
-		echo '<tr class="plugin-update-tr"><td colspan="4" class="plugin-update colspanchange"><div class="update-message notice inline notice-error notice-alt"><p>hujnq</p></div></td></tr>';
-		echo '<tr class="plugin-update-tr"><td colspan="4" class="plugin-update colspanchange"><div class="update-message notice inline notice-alt updated-message notice-success"><p>hujnq</p></div></td></tr>';
+		// status - 'all', 'active', 'inactive', 'recently_activated', 'upgrade', 'mustuse', 'dropins', 'search', 'paused', 'auto-update-enabled', 'auto-update-disabled'
+		
+		if ($this->plugins_lock) {
+			
+			// plugin should be deleted 
+			if (!isset($this->plugins_lock->plugins->{$plugin_file})) {
+				
+				echo '<tr class="plugin-update-tr"><td colspan="4" class="plugin-update colspanchange"><div class="update-message notice inline notice-error notice-alt"><p>'.__('Site administrator: Removal recommended','wp5-bang').'</p></div></td></tr>';
+				
+			} else {
+				
+				if (isset($plugin_data['new_version']) && $plugin_data['new_version'] != $plugin_data['Version']) {
+					
+					if ( $plugin_data['new_version'] != $this->plugins_lock->plugins->{$plugin_file}->version) {
+						
+						echo '<tr class="plugin-update-tr"><td colspan="4" class="plugin-update colspanchange"><div class="update-message notice inline notice-warning notice-alt"><p>'.__('Site administrator: This update has not been tested','wp5-bang').'</p></div></td></tr>';
+						$version_alert = true;
+						
+					} else { 
+						
+						echo '<tr class="plugin-update-tr"><td colspan="4" class="plugin-update colspanchange"><div class="update-message notice inline notice-alt updated-message notice-success"><p>'.__('Site administrator: Please update now','wp5-bang').'</p></div></td></tr>';
+						$version_alert = true;
+						
+					}
+					
+				} 
+					
+				if (!isset($version_alert) && $plugin_data['Version'] != $this->plugins_lock->plugins->{$plugin_file}->version) {
+					
+					echo '<tr class="plugin-update-tr"><td colspan="4" class="plugin-update colspanchange"><div class="update-message notice inline notice-warning notice-alt"><p>'.__('Site administrator: A different version of this plugin is recommended','wp5-bang').'</p></div></td></tr>';
+					
+				}
+				
+					
+				if (is_network_admin()) {
+					
+					if ($plugin_data['Network'] && !$this->plugins_lock->plugins->{$plugin_file}->network) {
+						
+						echo '<tr class="plugin-update-tr"><td colspan="4" class="plugin-update colspanchange"><div class="update-message notice inline notice-warning notice-alt"><p>'.__('Site administrator: Please deactivate for network and activate on required sites only.','wp5-bang').'</p></div></td></tr>';
+						
+					} else if (!$plugin_data['Network'] && $this->plugins_lock->plugins->{$plugin_file}->network) {
+						
+						echo '<tr class="plugin-update-tr"><td colspan="4" class="plugin-update colspanchange"><div class="update-message notice inline notice-warning notice-alt"><p>'.__('Site administrator: Please activate for network','wp5-bang').'</p></div></td></tr>';
+						
+					}
+				}
+				
+			}
+			
+		}
+		
 	}
 
 	
 }
-
-
-//$all_plugins = apply_filters( 'all_plugins', get_plugins() );
-
-
 
 // add_filter( 'plugin_action_links','trest',10, 4 );
 function trest($actions, $plugin_file, $plugin_data, $context) {
@@ -136,58 +299,4 @@ function trest($actions, $plugin_file, $plugin_data, $context) {
 	return $actions;
 }
 
-
-
 //do_action( "in_plugin_update_message-{$file}", $plugin_data, $response );
-/*
-
-array(1) { 
-	["deactivate"]=> string(182) "Deactivate" 
-} 
-string(21) "wp5-bang/wp5-bang.php" 
-array(11) { 
-	["Name"] => string(4) "Bang" 
-	["PluginURI"]=> string(39) "https://github.com/boyanraichev/wp5-env" 
-	["Version"]=> string(3) "1.0" 
-	["Description"]=> string(39) "Wordress custom development boilerplate" 
-	["Author"]=> string(13) "Boyan Raichev" 
-	["AuthorURI"]=> string(32) "https://github.com/boyanraichev/" 
-	["TextDomain"]=> string(8) "wp5-bang" 
-	["DomainPath"]=> string(10) "/languages" 
-	["Network"]=> bool(false) 
-	["Title"]=> string(4) "Bang" 
-	["AuthorName"]=> string(13) "Boyan Raichev" 
-} 
-string(3) "all" 
-
-array(2) { 
-	["activate"]=> string(226) "Activate" 
-	["delete"]=> string(239) "Delete" 
-} 
-string(43) "bulglish-permalinks/bulglish-permalinks.php" 
-array(20) { 
-	["id"]=> string(33) "w.org/plugins/bulglish-permalinks" 
-	["slug"]=> string(19) "bulglish-permalinks" 
-	["plugin"]=> string(43) "bulglish-permalinks/bulglish-permalinks.php" 
-	["new_version"]=> string(5) "1.4.2" 
-	["url"]=> string(50) "https://wordpress.org/plugins/bulglish-permalinks/" 
-	["package"]=> string(68) "https://downloads.wordpress.org/plugin/bulglish-permalinks.1.4.2.zip" 
-	["icons"]=> array(1) { ["default"]=> string(70) "https://s.w.org/plugins/geopattern-icon/bulglish-permalinks_80c8ff.svg" } 
-	["banners"]=> array(1) { ["1x"]=> string(74) "https://ps.w.org/bulglish-permalinks/assets/banner-772x250.png?rev=1012075" } 
-	["banners_rtl"]=> array(0) { } 
-	["Name"]=> string(19) "Bulglish permalinks" 
-	["PluginURI"]=> string(55) "https://github.com/talkingaboutthis/bulglish-permalinks" 
-	["Version"]=> string(5) "1.4.2" 
-	["Description"]=> string(67) "This plugins transliterates cyrillic URL slugs to latin characters." 
-	["Author"]=> string(13) "Boyan Raichev" 
-	["AuthorURI"]=> string(27) "http://talkingaboutthis.eu/" 
-	["TextDomain"]=> string(19) "bulglish-permalinks" 
-	["DomainPath"]=> string(0) "" 
-	["Network"]=> bool(false) 
-	["Title"]=> string(19) "Bulglish permalinks" 
-	["AuthorName"]=> string(13) "Boyan Raichev"
-} 
-string(3) "all"
-	 
-	
-*/
