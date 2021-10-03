@@ -31,7 +31,21 @@ abstract class CustomMeta {
 		
 		$this->fields = [];
 		
-		foreach($this->fieldsRaw as $fields) {
+		foreach($this->fieldsRaw as $fieldsRaw) {
+			
+			foreach($fieldsRaw as $template => $fields) {
+				
+				if (!isset($this->fields[$template])) {
+					$this->fields[$template] = $fields;
+				} else {
+					
+					foreach($fields as $id => $section) {
+						$this->fields[$template][$id] = $section;
+					}
+					
+				}
+			}
+			
 			$this->fields += $fields;
 		}
 		
