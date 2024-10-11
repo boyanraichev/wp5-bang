@@ -11,6 +11,8 @@ class Lock {
 	
 	private $plugins_lock = false;	
 	
+	private $missing = [];
+	
 	// Don't load more than one instance of the class
 	public static function instance() 
 	{
