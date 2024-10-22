@@ -153,7 +153,14 @@ class PostMeta extends CustomMeta {
 						echo '<div class="tat_meta_section">';
 							$saved = get_post_meta( $post_id, $section['meta_name'], true );
 							$options = ( isset($section['options']) ? $section['options'] : null );
-							echo $this->printField($post_id,$section['meta_name'],$section['meta_type'],$section['label'],$section['placeholder'],$saved,$options);
+							echo $this->printField(
+								$post_id,
+								$section['meta_name'],
+								$section['label'],
+								$section['placeholder'],
+								$section['meta_type'],
+								$saved,
+								$options);
 						echo '</div>';
 						break;
 					// multiple fields with single meta name
@@ -168,7 +175,15 @@ class PostMeta extends CustomMeta {
 								$id = $section['meta_name'].'__'.$row['name'];
 								$options = ( isset($row['options']) ? $row['options'] : null );
 								$value = ( isset( $saved[$row['name']] ) ? $saved[$row['name']] : '' );
-								echo $this->printField($post_id,$name,$row['meta_type'],$row['label'],$row['placeholder'],$value,$options,$id);
+								echo $this->printField(
+									$post_id,
+									$name,
+									$row['label'],
+									$row['placeholder'],
+									$row['meta_type'],
+									$value,
+									$options,
+									$id);
 							}
 						echo '</div>';
 						break;
@@ -225,7 +240,14 @@ class PostMeta extends CustomMeta {
 												$value = ( isset( $single[$field['name']] ) ? $single[$field['name']] : '' );
 												$label = ( !empty( $field['label'] ) ? $field['label'] : '' );
 												$options = ( isset($field['options']) ? $field['options'] : null );
-												echo $this->printField($post_id, $name,$field['meta_type'],$label,$field['title'],$value,$options);
+												echo $this->printField(
+													$post_id, 
+													$name,
+													$label,
+													$field['title'],
+													$field['meta_type'],
+													$value,
+													$options);
 											}
 										}					
 										?>
@@ -256,7 +278,14 @@ class PostMeta extends CustomMeta {
 											$name = $section['meta_name'].'[__key__]['.$field['name'].']';
 											$label = ( !empty( $field['label'] ) ? $field['label'] : '' );
 											$options = ( isset($field['options']) ? $field['options'] : null );
-											echo $this->printField($post_id,$name,$field['meta_type'],$label,$field['title'],'',$options);
+											echo $this->printField(
+												$post_id,
+												$name,
+												$label,
+												$field['title'],
+												$field['meta_type'],
+												'',
+												$options);
 										}
 										?>
 										</div>
@@ -280,7 +309,15 @@ class PostMeta extends CustomMeta {
 		echo '</div>';	
 	}
 	
-	public function printField($post_id, $name, $type='text', $label, $placeholder, $value=null, $options=null, $id=null) 
+	public function printField(
+		$post_id, 
+		$name, 
+		$label, 
+		$placeholder, 
+		$type = 'text', 
+		$value = null, 
+		$options = null, 
+		$id = null) 
 	{
 		
 		if (!$id) {
