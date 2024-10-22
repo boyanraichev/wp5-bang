@@ -29,10 +29,6 @@ class Init {
 			define('PROJECT_DIR',dirname(__DIR__,4));
 		}    
 		
-		// make custom theme folder outside content work		
-		add_filter( 'theme_root_uri', function($theme_root) { return WP_HOME . '/themes'; } );
-		add_filter( 'theme_root', function($theme_root) { return PROJECT_DIR . '/web/' . 'themes'; } );
-		
 		// setup theme
 		add_action( 'after_setup_theme', [ $this, 'themeSetup' ] ); 
 		add_action( 'init', [ $this, 'themeInit' ] );
